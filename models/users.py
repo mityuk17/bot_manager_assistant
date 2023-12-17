@@ -1,14 +1,14 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import time
 
 
 class User(BaseModel):
-    chat_id: int
     user_id: int
+    chat_id: int
     full_name: str
     town: str
-    time_start: datetime
-    time_end: datetime
+    time_start: time
+    time_end: time
     week_days: str
     job_title: str
     product: str

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import time
 
 
 class Newsletters(BaseModel):
@@ -7,6 +7,6 @@ class Newsletters(BaseModel):
     message_id: int
     user_id: int
     chat_id: int
-    time: datetime
+    time: time
     week_days: str
 

@@ -3,10 +3,11 @@ import logging
 import asyncio
 
 import bot.bot as start_bot
+# from db.db import create_tables
 
 
 async def main():
-    # db.start_session()
+    # await create_tables()
     await start_bot.main()
 
 

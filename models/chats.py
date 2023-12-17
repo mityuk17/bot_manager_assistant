@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 
-class Chats(BaseModel):
+class Chat(BaseModel):
     chat_id: int
     excluded_users: str
