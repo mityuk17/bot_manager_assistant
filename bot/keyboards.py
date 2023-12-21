@@ -52,3 +52,25 @@ def week_days_function(s: str):
 full_information = InlineKeyboardBuilder()
 full_information.add(InlineKeyboardButton(text='Все верно!', callback_data='full_information'))
 full_information.add(InlineKeyboardButton(text='Я ошибся!', callback_data='not_full_information'))
+
+admin_selection = [
+    [
+        InlineKeyboardButton(text='Взаимодействия с чатами', callback_data='chat_interactions'),
+    ],
+    [
+        InlineKeyboardButton(text='Рассылка по всем чатам', callback_data='sending_newsletters'),
+    ]
+]
+
+admin_menu = InlineKeyboardMarkup(inline_keyboard=admin_selection)
+
+admin_cancel = InlineKeyboardBuilder()
+admin_cancel.add(InlineKeyboardButton(text='Назад', callback_data='admin_cancel'))
+
+chat_functools_keyboard = InlineKeyboardBuilder()
+chat_functools_keyboard.add(
+    InlineKeyboardButton(text='Добавить чат', callback_data='add_new_chat')
+)
+chat_functools_keyboard.add(
+    InlineKeyboardButton(text='Редактировать юзеров(выберите чат)', callback_data='check_chat')
+)

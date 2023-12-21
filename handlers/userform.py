@@ -40,18 +40,23 @@ async def command_start(message: Message, state: FSMContext):
             text=text_user_form.wrong_command
         )
     else:
-        await message.answer(
-            text=text_user_form.start_message
-        )
-
         chat_id_ = text.split(' ')[-1]
         user_id_ = message.from_user.id
+        db = [[834970450, -1002025979042]]  # get all_users id and chat_id from all db
+        if user_id_ in db[0] and chat_id_ in db[0]:
+            await message.answer(
+                text=text_user_form.already_registered
+            )
+        else:
+            await message.answer(
+                text=text_user_form.start_message
+            )
 
-        await message.answer(
-            text=text_user_form.full_name,
-        )
-        await state.update_data(user_id=user_id_, chat_id=chat_id_)
-        await state.set_state(RegistrationForm.fullname)
+            await message.answer(
+                text=text_user_form.full_name,
+            )
+            await state.update_data(user_id=user_id_, chat_id=chat_id_)
+            await state.set_state(RegistrationForm.fullname)
 
 
 @router.message(RegistrationForm.fullname)
@@ -132,15 +137,22 @@ async def check_week_days(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     week_days = data.get('week_days')
     if week_days is None:
+        await call.message.edit_text(
+            text='Ввведите дни работы заново'
+        )
+
         await call.message.answer(
             text='типо заглушка с теми же самыми кнопками. пользователь не выбрал дни работы',
             reply_markup=keyboards.week_days_function('default')
         )
+
+        await call.message.edit_reply_markup()
+
     else:
         week_days_ = utils.week_days_to_bin(week_days)
-
+        await call.message.edit_reply_markup()
         await call.message.edit_text(
-            text=utils.take_names_by_index(week_days_)
+            text=utils.take_days_by_index(week_days_)
         )
 
         await state.update_data(week_days=week_days_)
@@ -150,7 +162,6 @@ async def check_week_days(call: CallbackQuery, state: FSMContext):
         )
 
         await state.set_state(RegistrationForm.job_title)
-    await call.message.edit_reply_markup()
 
 
 @router.message(RegistrationForm.job_title)
@@ -178,13 +189,8 @@ async def metrics(message: Message, state: FSMContext):
     metrics_ = message.text
     await state.update_data(metrics=metrics_)
     data = await state.get_data()
-    user_full_info = ''
-    for k, v in data.items():
-        if k != 'week_days':
-            user_full_info += f'{k}: {v}\n'
-        else:
-            user_full_info += utils.take_names_by_index(v)
 
+    user_full_info = utils.user_information(data)
     await message.answer(
         text=user_full_info,
         reply_markup=keyboards.full_information.as_markup()
@@ -198,7 +204,7 @@ async def metrics(message: Message, state: FSMContext):
 @router.callback_query(F.data == 'not_full_information')
 async def full_information(call: CallbackQuery, state: FSMContext):
     await call.answer()
-    await call.message.edit_reply_markup()
+
     await state.clear()
 
     await call.message.answer(
@@ -207,11 +213,12 @@ async def full_information(call: CallbackQuery, state: FSMContext):
 
     print('log out')
 
+    await call.message.edit_reply_markup()
+
 
 @router.callback_query(F.data == 'full_information')
 async def full_information(call: CallbackQuery, state: FSMContext):
     await call.answer()
-    await call.message.edit_reply_markup()
     data = await state.get_data()
     await state.clear()
     # make data how Pydantic-model
@@ -221,3 +228,4 @@ async def full_information(call: CallbackQuery, state: FSMContext):
         text=text_user_form.logged_in
     )
     print('log in')
+    await call.message.edit_reply_markup()
