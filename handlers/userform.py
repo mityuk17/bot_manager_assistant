@@ -7,6 +7,9 @@ import bot.utils as utils
 import bot.keyboards as keyboards
 import text.userform as text_user_form
 
+from models.users import User as UserDB
+import crud.users as crud_users
+
 
 class RegistrationForm(StatesGroup):
     user_id = State()
@@ -42,16 +45,15 @@ async def command_start(message: Message, state: FSMContext):
     else:
         chat_id_ = text.split(' ')[-1]
         user_id_ = message.from_user.id
-        db = [[834970450, -1002025979042]]  # get all_users id and chat_id from all db
-        if user_id_ in db[0] and chat_id_ in db[0]:
+        query = await crud_users.get_user_by_user_id_and_chat_id(user_id_, chat_id_)
+        if query is not None:
             await message.answer(
                 text=text_user_form.already_registered
             )
         else:
             await message.answer(
-                text=text_user_form.start_message
+                text=text_user_form.start_message,
             )
-
             await message.answer(
                 text=text_user_form.full_name,
             )
@@ -211,8 +213,6 @@ async def full_information(call: CallbackQuery, state: FSMContext):
         text=text_user_form.not_logged_in,
     )
 
-    print('log out')
-
     await call.message.edit_reply_markup()
 
 
@@ -221,11 +221,10 @@ async def full_information(call: CallbackQuery, state: FSMContext):
     await call.answer()
     data = await state.get_data()
     await state.clear()
-    # make data how Pydantic-model
-    # add model to db
+    user_model = UserDB(**data['done'])
+    await crud_users.create_user(user_model)
 
     await call.message.answer(
         text=text_user_form.logged_in
     )
-    print('log in')
     await call.message.edit_reply_markup()

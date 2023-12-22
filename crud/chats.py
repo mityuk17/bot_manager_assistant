@@ -21,13 +21,6 @@ async def get_chat_by_id(chat_id: int):
         return Chat.model_validate(result, from_attributes=True) if result else None
 
 
-async def get_all_chats():
-    async with AsyncSession(engine) as session:
-        query = await session.execute(text("SELECT * FROM chats"))
-        result = query.all()
-        return [Chat.model_validate(chat, from_attributes=True) for chat in result]
-
-
 async def update_chat(chat: Chat):
     async with AsyncSession(engine) as session:
         await session.execute(
@@ -36,3 +29,18 @@ async def update_chat(chat: Chat):
                 WHERE chat_id = {chat.chat_id}''')
         )
         await session.commit()
+
+
+async def delete_chat(chat_id: int):
+    async with AsyncSession(engine) as session:
+        await session.execute(
+            text(f'''DELETE FROM chats WHERE chat_id = {chat_id}''')
+        )
+        await session.commit()
+
+
+async def get_all_chats():
+    async with AsyncSession(engine) as session:
+        query = await session.execute(text("SELECT * FROM chats"))
+        result = query.all()
+        return [Chat.model_validate(chat, from_attributes=True) for chat in result]

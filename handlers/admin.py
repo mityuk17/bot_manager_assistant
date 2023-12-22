@@ -10,9 +10,9 @@ import bot.keyboards as keyboards
 
 import crud.added_chats as crud_added_chats
 
+from models.chats import Chat
+import crud.chats as crud_chats
 
-# from models.chats import Chat
-# from crud.chats import create_chat
 
 class SendingNewsletters(StatesGroup):
     sending_newsletter = State()
@@ -64,9 +64,11 @@ async def add_new_chat(message: Message, state: FSMContext):
     await state.clear()
     chat_title = message.text.strip().lower()
     chat = await crud_added_chats.get_chat_by_title(chat_title=chat_title)
-    if chat:
-        chat_id = chat.chat_id
-        ...
+    if chat is None:
+        await message.answer(
+            text=admins_text.chat_not_found,
+        )
+        await state.clear()
     else:
         ...
 
@@ -102,7 +104,8 @@ async def sending_newsletters(callback: CallbackQuery, state: FSMContext):
 async def sending_newsletters(message: Message, state: FSMContext):
     await state.clear()
 
-    all_chats = []  # get all chats from db
+    all_chats = await crud_chats.get_all_chats()
+    print(all_chats)
     count = 0
     for i in all_chats:
         chat_id = i['chat_id']
