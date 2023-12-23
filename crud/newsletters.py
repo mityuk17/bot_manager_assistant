@@ -26,11 +26,16 @@ async def get_newsletter_by_id(newsletter_id: int):
 
 async def update_newsletters(newsletter: Newsletters):
     async with AsyncSession(engine) as session:
+        # В time возможно тоже кавычки должны быть
         await session.execute(
             text(
-                f'''UPDATE newsletters SET message_id = {newsletter.message_id}, user_id = {newsletter.user_id}, 
-                chat_id = {newsletter.chat_id}, time = {newsletter.time}, week_days = {newsletter.week_days} 
-                WHERE id = {newsletter.id}'''
+                f"""UPDATE newsletters SET
+                message_id = {newsletter.message_id},
+                user_id = {newsletter.user_id}, 
+                chat_id = {newsletter.chat_id},
+                time = {newsletter.time}, 
+                week_days = "{newsletter.week_days}" 
+                WHERE id = {newsletter.id};"""
             )
         )
         await session.commit()
@@ -40,7 +45,7 @@ async def delete_newsletters(newsletter_id: int):
     async with AsyncSession(engine) as session:
         await session.execute(
             text(
-                f'''DELETE FROM newsletters WHERE id = {newsletter_id}'''
+                f'''DELETE FROM newsletters WHERE id = {newsletter_id};'''
             )
         )
 
@@ -49,8 +54,6 @@ async def delete_newsletters(newsletter_id: int):
 
 async def get_all_newsletters():
     async with AsyncSession(engine) as session:
-        query = await session.execute(
-            text("SELECT * FROM newsletters")
-        )
+        query = await session.execute(text("SELECT * FROM newsletters;"))
         result = query.all()
-        return [Newsletters.model_validate(newsletters, from_attributes=True) for newsletters in result]
+        return [Newsletters.model_validate(newsletter, from_attributes=True) for newsletter in result]

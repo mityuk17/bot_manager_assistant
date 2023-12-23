@@ -27,9 +27,12 @@ async def update_post(post: Posts):
     async with AsyncSession(engine) as session:
         await session.execute(
             text(
-                f'''UPDATE posts SET user_id = {post.user_id}, chat_id = {post.chat_id}, 
-                time_type = {post.time_type}, sent_time = {post.sent_time}
-                WHERE id = {post.id}'''
+                f'''UPDATE posts SET
+                user_id = {post.user_id},
+                chat_id = {post.chat_id}, 
+                time_type = {post.time_type},
+                sent_time = {post.sent_time}
+                WHERE id = {post.id};'''
             )
         )
         await session.commit()

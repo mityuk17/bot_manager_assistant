@@ -25,8 +25,8 @@ async def update_chat(chat: Chat):
     async with AsyncSession(engine) as session:
         await session.execute(
             text(f'''UPDATE chats SET 
-                excluded_users = {chat.excluded_users}
-                WHERE chat_id = {chat.chat_id}''')
+                excluded_users = "{chat.excluded_users}"
+                WHERE chat_id = {chat.chat_id};''')
         )
         await session.commit()
 
@@ -34,7 +34,7 @@ async def update_chat(chat: Chat):
 async def delete_chat(chat_id: int):
     async with AsyncSession(engine) as session:
         await session.execute(
-            text(f'''DELETE FROM chats WHERE chat_id = {chat_id}''')
+            text(f'''DELETE FROM chats WHERE chat_id = {chat_id};''')
         )
         await session.commit()
 
