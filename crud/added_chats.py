@@ -7,6 +7,8 @@ from db.db import engine
 
 async def add_new_chat(chat: AddedChats):
     async with AsyncSession(engine) as session:
+        if chat in await get_all_chats():
+            return None
         chat_db = AddedChatsDB(
             chat_id=chat.chat_id,
             title=chat.title
@@ -18,7 +20,18 @@ async def add_new_chat(chat: AddedChats):
 async def get_chat_by_title(chat_title: str):
     async with AsyncSession(engine) as session:
         query = await session.execute(
-            text(f"""SELECT * FROM added_chats WHERE title="{chat_title}";""")
+            text(f"""SELECT * FROM added_chats WHERE title='{chat_title}';""")
         )
         result = query.all()
         return AddedChats.model_validate(result[0], from_attributes=True) if result else None
+
+
+async def get_all_chats():
+    async with AsyncSession(engine) as session:
+        query = await session.execute(
+            text(
+                """SELECT * FROM added_chats;"""
+            )
+        )
+        result = query.all()
+        return [AddedChats.model_validate(chat, from_attributes=True) for chat in result]

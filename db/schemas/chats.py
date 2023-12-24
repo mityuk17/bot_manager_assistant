@@ -4,8 +4,8 @@ from sqlalchemy import Column, Integer, String, Time
 
 class Chat(Base):
     __tablename__ = 'chats'
-    chat_id = Column(Integer, primary_key=True)
-    excluded_users = Column(String)
+    chat_id = Column(String, primary_key=True)
+    title = Column(String)
 
 
 

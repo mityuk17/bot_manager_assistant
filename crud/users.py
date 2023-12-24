@@ -53,8 +53,8 @@ async def delete_user_by_user_id_and_chat_id(user: User):
     async with AsyncSession(engine) as session:
         await session.execute(
             text(
-                f"""DELETE FROM "users"
-                WHERE user_id = {user.user_id} AND chat_id = {user.chat_id};"""
+                f"""DELETE FROM 'users'
+                WHERE user_id = {user.user_id} AND chat_id = '{user.chat_id}';"""
             )
         )
 
@@ -65,7 +65,7 @@ async def get_all_users():
     async with AsyncSession(engine) as session:
         query = await session.execute(
             text(
-                """SELECT * FROM "users";"""
+                """SELECT * FROM 'users';"""
             )
         )
         result = query.all()

@@ -3,6 +3,7 @@ from db.schemas.posts import Posts as PostsDB
 from sqlalchemy.sql import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.db import engine
+from datetime import datetime
 
 
 async def create_post(post: Posts):
@@ -27,12 +28,12 @@ async def update_post(post: Posts):
     async with AsyncSession(engine) as session:
         await session.execute(
             text(
-                f'''UPDATE posts SET
+                f"""UPDATE posts SET
                 user_id = {post.user_id},
                 chat_id = {post.chat_id}, 
-                time_type = {post.time_type},
+                time_type = '{post.time_type}',
                 sent_time = {post.sent_time}
-                WHERE id = {post.id};'''
+                WHERE id = {post.id};"""
             )
         )
         await session.commit()
@@ -42,7 +43,7 @@ async def delete_post(post_id: int):
     async with AsyncSession(engine) as session:
         await session.execute(
             text(
-                f'''DELETE FROM posts WHERE id = {post_id}'''
+                f"""DELETE FROM posts WHERE id = {post_id}"""
             )
         )
 
@@ -53,9 +54,24 @@ async def get_all_posts():
     async with AsyncSession(engine) as session:
         query = await session.execute(
             text(
-                '''SELECT * FROM posts'''
+                """SELECT * FROM posts"""
             )
         )
 
         result = query.all()
         return [Posts.model_validate(posts, from_attributes=True) for posts in result]
+
+
+async def check_send_information(user_id: int, chat_id: str, time_type: str):
+    async with AsyncSession(engine) as session:
+        today = datetime.today().date()
+        today = datetime(today.year, today.month, today.day, )
+        query = await session.execute(
+            text(
+                f"""SELECT * FROM posts WHERE
+                user_id = {user_id} AND chat_id = {chat_id}
+                AND time_type = '{time_type}';"""
+            )
+        )
+        result = query.all()
+        return bool([Posts.model_validate(post, from_attributes=True) for post in result if post.sent_time > today])

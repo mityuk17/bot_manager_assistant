@@ -1,6 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from models.chats import Chat
+
 
 def send_info_about_keyboard(chat_id: int | str):
     send_info_about = InlineKeyboardBuilder()
@@ -49,6 +51,14 @@ def week_days_function(s: str):
     return keyboard
 
 
+def select_chat(chats: list[Chat]):
+    keyboard = []
+    for chat in chats:
+        button = InlineKeyboardButton(text=chat.title, callback_data=f'chatID_{chat.chat_id}')
+        keyboard.append([button])
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
 full_information = InlineKeyboardBuilder()
 full_information.add(InlineKeyboardButton(text='Все верно!', callback_data='full_information'))
 full_information.add(InlineKeyboardButton(text='Я ошибся!', callback_data='not_full_information'))
@@ -67,10 +77,16 @@ admin_menu = InlineKeyboardMarkup(inline_keyboard=admin_selection)
 admin_cancel = InlineKeyboardBuilder()
 admin_cancel.add(InlineKeyboardButton(text='Назад', callback_data='admin_cancel'))
 
-chat_functools_keyboard = InlineKeyboardBuilder()
-chat_functools_keyboard.add(
-    InlineKeyboardButton(text='Добавить чат', callback_data='add_new_chat')
-)
-chat_functools_keyboard.add(
-    InlineKeyboardButton(text='Редактировать юзеров(выберите чат)', callback_data='check_chat')
-)
+chat_functools = [
+    [
+        InlineKeyboardButton(text='Добавить чат', callback_data='add_new_chat'),
+    ],
+    [
+        InlineKeyboardButton(text='Просмотреть зарегестрированных работников(выберите чат)', callback_data='check_chat')
+    ]
+]
+
+chat_functools_keyboard = InlineKeyboardMarkup(inline_keyboard=chat_functools)
+admin_yes_or_no = InlineKeyboardBuilder()
+admin_yes_or_no.add(InlineKeyboardButton(text='Да', callback_data='week_yes'))
+admin_yes_or_no.add(InlineKeyboardButton(text='Нет', callback_data='week_no'))

@@ -10,7 +10,6 @@ async def create_newsletter(newsletter: Newsletters):
         newsletter_db = NewslettersDB(
             message_id=newsletter.message_id,
             user_id=newsletter.user_id,
-            chat_id=newsletter.chat_id,
             time=newsletter.time,
             week_days=newsletter.week_days,
         )
@@ -32,9 +31,8 @@ async def update_newsletters(newsletter: Newsletters):
                 f"""UPDATE newsletters SET
                 message_id = {newsletter.message_id},
                 user_id = {newsletter.user_id}, 
-                chat_id = {newsletter.chat_id},
                 time = {newsletter.time}, 
-                week_days = "{newsletter.week_days}" 
+                week_days = '{newsletter.week_days}',
                 WHERE id = {newsletter.id};"""
             )
         )
@@ -45,7 +43,7 @@ async def delete_newsletters(newsletter_id: int):
     async with AsyncSession(engine) as session:
         await session.execute(
             text(
-                f'''DELETE FROM newsletters WHERE id = {newsletter_id};'''
+                f"""DELETE FROM newsletters WHERE id = {newsletter_id};"""
             )
         )
 
@@ -54,6 +52,6 @@ async def delete_newsletters(newsletter_id: int):
 
 async def get_all_newsletters():
     async with AsyncSession(engine) as session:
-        query = await session.execute(text("SELECT * FROM newsletters;"))
+        query = await session.execute(text("""SELECT * FROM newsletters;"""))
         result = query.all()
         return [Newsletters.model_validate(newsletter, from_attributes=True) for newsletter in result]

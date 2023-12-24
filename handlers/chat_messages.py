@@ -6,27 +6,47 @@ import text.chat as text_chat
 import bot.keyboards as keyboards
 import crud.added_chats as crud_added_chats
 from models.added_chats import AddedChats
+from models.chats import Chat
+import crud.chats as crud_chats
+import crud.posts as crud_posts
+from models.posts import Posts
+from datetime import datetime
 
 router = Router()
 
 
 @router.my_chat_member()
 async def my_chat_member(message: Message):
-    chat_id = message.chat.id
+    chat_id = str(message.chat.id)
     chat_ = AddedChats(chat_id=chat_id, title=message.chat.title.strip().lower())
     await crud_added_chats.add_new_chat(chat_)
 
 
 @router.message()
 async def start_session_in_chat(message: Message):
-    NECESSARY_CHATS = [-1002025979042]
-    necessary_chats = NECESSARY_CHATS
-    chat_id = message.chat.id
-    if chat_id in necessary_chats:
-        await message.answer(
-            text=text_chat.send_about,
-            reply_markup=keyboards.send_info_about_keyboard(message.chat.id).as_markup()
-        )
+    chat_id = str(message.chat.id)
+    text = message.text
+    necessary_chat = await crud_chats.get_chat_by_id(chat_id)
+    if necessary_chat is None:
         ...
     else:
-        print('chat_id не в разрешенных')
+        user_id = message.from_user.id
+
+        if '#morning' in text.lower():
+            post = Posts(
+                id=None,
+                user_id=user_id,
+                chat_id=chat_id,
+                time_type='morning',
+                sent_time=datetime.now()
+            )
+            await crud_posts.create_post(post)
+        if '#evening' in text.lower():
+            post = Posts(
+                id=None,
+                user_id=user_id,
+                chat_id=chat_id,
+                time_type='evening',
+                sent_time=datetime.now()
+            )
+            await crud_posts.create_post(post)
