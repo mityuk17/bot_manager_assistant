@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from models.chats import Chat
+import crud.newsletters as crud_newsletters
 
 
 def send_info_about_keyboard(chat_id: int | str):
@@ -50,6 +51,7 @@ def week_days_function(s: str):
     keyboard = InlineKeyboardMarkup(inline_keyboard=week_days)
     return keyboard
 
+
 def chat_week_days_function(s: str):
     week_days = [
         [
@@ -87,6 +89,7 @@ def chat_week_days_function(s: str):
     keyboard = InlineKeyboardMarkup(inline_keyboard=week_days)
     return keyboard
 
+
 def select_chat(chats: list[Chat]):
     keyboard = []
     for chat in chats:
@@ -99,20 +102,21 @@ full_information = InlineKeyboardBuilder()
 full_information.add(InlineKeyboardButton(text='Все верно!', callback_data='full_information'))
 full_information.add(InlineKeyboardButton(text='Я ошибся!', callback_data='not_full_information'))
 
-
 admin_selection = [
     [
         InlineKeyboardButton(text='Чаты', callback_data='chat_interactions'),
     ],
     [
-        InlineKeyboardButton(text='Рассылки', callback_data='sending_newsletters'),
+        InlineKeyboardButton(text='Рассылки', callback_data='newsletter_information'),
     ]
 ]
 admin_menu = InlineKeyboardMarkup(inline_keyboard=admin_selection)
-
 admin_cancel = InlineKeyboardBuilder()
 admin_cancel.add(InlineKeyboardButton(text='Назад', callback_data='admin_cancel'))
-
+admin_newsletter = InlineKeyboardBuilder()
+admin_newsletter.add(InlineKeyboardButton(text='Добавить', callback_data='sending_newsletters'))
+admin_newsletter.add(InlineKeyboardButton(text='Удалить', callback_data='admin_delete_newsletter'))
+admin_newsletter.add(InlineKeyboardButton(text='Посмотреть', callback_data='admin_watch_newsletter'))
 
 chat_functools = [
     [
@@ -127,3 +131,29 @@ chat_functools_keyboard = InlineKeyboardMarkup(inline_keyboard=chat_functools)
 admin_yes_or_no = InlineKeyboardBuilder()
 admin_yes_or_no.add(InlineKeyboardButton(text='Да', callback_data='week_yes'))
 admin_yes_or_no.add(InlineKeyboardButton(text='Нет', callback_data='week_no'))
+
+
+async def all_newsletters_delete():
+    keyboard = []
+    newsletters = await crud_newsletters.get_all_newsletters()
+    for newsletter in newsletters:
+        newsletter_id = newsletter.id
+        newsletter_time = newsletter.time.strftime('%H:%M')
+        keyboard.append([
+            InlineKeyboardButton(text=f'#{newsletter_id} {newsletter_time}',
+                                 callback_data=f'newsletter_delete_id_{newsletter_id}'),
+        ])
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+async def all_newsletters_check():
+    keyboard = []
+    newsletters = await crud_newsletters.get_all_newsletters()
+    for newsletter in newsletters:
+        newsletter_id = newsletter.id
+        newsletter_time = newsletter.time.strftime('%H:%M')
+        keyboard.append([
+            InlineKeyboardButton(text=f'#{newsletter_id} {newsletter_time}',
+                                 callback_data=f'newsletter_check_id_{newsletter_id}'),
+        ])
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)

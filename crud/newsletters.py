@@ -39,7 +39,7 @@ async def update_newsletters(newsletter: Newsletters):
         await session.commit()
 
 
-async def delete_newsletters(newsletter_id: int):
+async def delete_newsletter(newsletter_id: int):
     async with AsyncSession(engine) as session:
         await session.execute(
             text(
