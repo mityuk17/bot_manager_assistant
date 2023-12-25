@@ -147,11 +147,10 @@ async def sending_newsletters(call: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == 'admin_delete_newsletter')
 async def admin_delete_newsletter(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer(
+    await callback.message.edit_text(
         text=admins_text.all_newslers,
         reply_markup=await keyboards.all_newsletters_delete()
     )
-    await callback.message.edit_reply_markup()
 
 
 @router.callback_query(F.data.startswith('newsletter_delete_id_'))
@@ -159,7 +158,7 @@ async def admin_delete_newsletter(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_reply_markup()
     await crud_newsletters.delete_newsletter(int(callback.data.split("_")[-1]))
-    await callback.message.answer(
+    await callback.message.edit_text(
         text='Рассылка успешно удалена!'
     )
 
@@ -167,7 +166,7 @@ async def admin_delete_newsletter(callback: CallbackQuery):
 @router.callback_query(F.data == 'admin_watch_newsletter')
 async def admin_watch_newsletter(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer(
+    await callback.message.edit_text(
         text=admins_text.watch_newsletter,
         reply_markup=await keyboards.all_newsletters_check()
     )
@@ -181,12 +180,13 @@ async def admin_delete_newsletter(callback: CallbackQuery):
     newsletter_id = int(callback.data.split("_")[-1])
     newsletter_ = await crud_newsletters.get_newsletter_by_id(newsletter_id)
     newsletter_time = newsletter_.time.strftime('%H:%M')
-    s = '''Информация о рассылке:\n'''
-    s += f'''Время: {newsletter_time}'''
-    s += f'''Дни работы: {utils.take_days_by_index(newsletter_.week_days)}'''
-    s += f'''Сообщение рассылки:'''
-    await callback.message.answer(
-        text=s
+    text = '''Информация о рассылке:\n'''
+    text += f'''Время: {newsletter_time}\n'''
+    text += f'''{utils.take_days_by_index(newsletter_.week_days)}'''
+    text += f'''Сообщение рассылки:'''
+    await callback.message.edit_text(
+        text=text,
+        reply_markup=None
     )
 
     await bot.copy_message(
@@ -195,7 +195,6 @@ async def admin_delete_newsletter(callback: CallbackQuery):
         message_id=newsletter_.message_id
     )
 
-    await callback.message.edit_reply_markup()
 
 
 @router.callback_query(F.data == 'admin_cancel', SendingNewsletters.sending_newsletter)
