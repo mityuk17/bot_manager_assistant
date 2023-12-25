@@ -75,3 +75,16 @@ async def check_send_information(user_id: int, chat_id: int, time_type: str):
         )
         result = query.all()
         return bool([Posts.model_validate(post, from_attributes=True) for post in result if post.sent_time > today])
+
+
+async def check_send_information_for_day(user_id: int, chat_id: int, time_type: str, date_1: datetime, date_2: datetime):
+    async with AsyncSession(engine) as session:
+        query = await session.execute(
+            text(
+                f"""SELECT * FROM posts WHERE
+                user_id = {user_id} AND chat_id = {chat_id}
+                AND time_type = '{time_type}' AND '{date_1}' < sent_time AND '{date_2}' > sent_time;"""
+            )
+        )
+        result = query.all()
+        return bool(result)

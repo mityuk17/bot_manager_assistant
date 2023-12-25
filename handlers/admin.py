@@ -117,7 +117,7 @@ async def check_chat(callback: CallbackQuery):
     for user in all_users:
         chat_user_id = user.chat_id
         if chat_id == chat_user_id:
-            users.append(f"• {user.fullname}")
+            users.append(await utils.get_user_statistic(user))
     await callback.message.edit_text(
         text='\n'.join(users) if users else 'В данном чате отсутствуют пользователи, заполнившие анкету',
         reply_markup=None

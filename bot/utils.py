@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date
 from models.added_chats import AddedChats
-from models.chats import Chat
+from models.users import  User
 import crud.chats as crud_chats
 import crud.posts as crud_posts
 from bot.bot import bot
@@ -143,3 +143,20 @@ def add_minutes(tm, minutes1):
     fulldate = datetime(100, 1, 1, tm.hour, tm.minute, tm.second)
     fulldate = fulldate + timedelta(minutes=minutes1)
     return fulldate.time()
+
+
+
+
+async def get_user_statistic(user: User):
+
+    prev_day = datetime.combine(date.today(), datetime.min.time())
+    today = (prev_day + timedelta(days=1))
+    prev_prev_day = (prev_day - timedelta(days=1))
+    prev_prev_prev_day = (prev_day - timedelta(days=2))
+    text = f"•{user.fullname}\n"
+    days = [prev_prev_prev_day, prev_prev_day, prev_day, today]
+    for i in range(3):
+        morning = await crud_posts.check_send_information_for_day(user.user_id, user.chat_id, 'morning', days[i], days[i+1])
+        evening = await crud_posts.check_send_information_for_day(user.user_id, user.chat_id, 'evening', days[i], days[i+1])
+        text += f"{days[i].date().ctime()} План: {'✅' if morning else '❌'} Отчёт: {'✅' if evening else '❌'}\n"
+    return text
