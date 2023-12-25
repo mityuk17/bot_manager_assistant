@@ -4,7 +4,7 @@ from datetime import time
 
 class User(BaseModel):
     user_id: int
-    chat_id: str
+    chat_id: int
     fullname: str
     town: str
     time_start: time

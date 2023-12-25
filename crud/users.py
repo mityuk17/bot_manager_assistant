@@ -23,10 +23,15 @@ async def create_user(user: User):
         await session.commit()
 
 
-async def get_user_by_user_id_and_chat_id(user_id: int, chat_id: str):
+async def get_user_by_user_id_and_chat_id(user_id: int, chat_id: int):
     async with AsyncSession(engine) as session:
-        result = await session.get(UserDB, [user_id, chat_id])
-        return User.model_validate(result, from_attributes=True) if result else None
+        query = await session.execute(
+            text(
+                f"""SELECT * FROM users WHERE user_id = {user_id} AND chat_id = {chat_id};"""
+            )
+        )
+        result = query.all()
+        return User.model_validate(result[0], from_attributes=True) if result else None
 
 
 async def update_user_by_user_id_and_chat_id(user: User):
@@ -53,8 +58,8 @@ async def delete_user_by_user_id_and_chat_id(user: User):
     async with AsyncSession(engine) as session:
         await session.execute(
             text(
-                f"""DELETE FROM 'users'
-                WHERE user_id = {user.user_id} AND chat_id = '{user.chat_id}';"""
+                f"""DELETE FROM users
+                WHERE user_id = {user.user_id} AND chat_id = {user.chat_id};"""
             )
         )
 
@@ -65,7 +70,7 @@ async def get_all_users():
     async with AsyncSession(engine) as session:
         query = await session.execute(
             text(
-                """SELECT * FROM 'users';"""
+                """SELECT * FROM users;"""
             )
         )
         result = query.all()

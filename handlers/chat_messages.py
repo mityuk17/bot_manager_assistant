@@ -13,8 +13,6 @@ from models.posts import Posts
 from datetime import datetime
 
 router = Router()
-
-
 @router.my_chat_member()
 async def my_chat_member(message: Message):
     chat_id = str(message.chat.id)
@@ -22,9 +20,9 @@ async def my_chat_member(message: Message):
     await crud_added_chats.add_new_chat(chat_)
 
 
-@router.message()
+@router.message(lambda msg: msg.chat.type == "group" or msg.chat.type == "supergroup")
 async def start_session_in_chat(message: Message):
-    chat_id = str(message.chat.id)
+    chat_id = message.chat.id
     text = message.text
     necessary_chat = await crud_chats.get_chat_by_id(chat_id)
     if necessary_chat is None:
@@ -32,7 +30,7 @@ async def start_session_in_chat(message: Message):
     else:
         user_id = message.from_user.id
 
-        if '#morning' in text.lower():
+        if '#план' in text.lower():
             post = Posts(
                 id=None,
                 user_id=user_id,
@@ -41,7 +39,7 @@ async def start_session_in_chat(message: Message):
                 sent_time=datetime.now()
             )
             await crud_posts.create_post(post)
-        if '#evening' in text.lower():
+        if '#отчёт' in text.lower() or '#отчет' in text.lower():
             post = Posts(
                 id=None,
                 user_id=user_id,

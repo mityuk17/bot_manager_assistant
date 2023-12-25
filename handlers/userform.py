@@ -43,7 +43,7 @@ async def command_start(message: Message, state: FSMContext):
             text=text_user_form.wrong_command
         )
     else:
-        chat_id_ = text.split(' ')[-1]
+        chat_id_ = int(text.split(' ')[-1])
         user_id_ = message.from_user.id
         query = await crud_users.get_user_by_user_id_and_chat_id(user_id_, chat_id_)
         if query is not None:

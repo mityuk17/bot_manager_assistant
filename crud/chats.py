@@ -16,7 +16,7 @@ async def create_chat(chat: Chat):
         await session.commit()
 
 
-async def get_chat_by_id(chat_id: str):
+async def get_chat_by_id(chat_id: int):
     async with AsyncSession(engine) as session:
         result = await session.get(ChatDB, chat_id)
         return Chat.model_validate(result, from_attributes=True) if result else None
@@ -25,7 +25,7 @@ async def get_chat_by_id(chat_id: str):
 async def delete_chat(chat_id: int):
     async with AsyncSession(engine) as session:
         await session.execute(
-            text(f"""DELETE FROM chats WHERE chat_id = '{chat_id}';""")
+            text(f"""DELETE FROM chats WHERE chat_id = {chat_id};""")
         )
         await session.commit()
 
@@ -41,7 +41,7 @@ async def get_users_by_chat_id(chat_id: str):
     async with AsyncSession(engine) as session:
         query = await session.execute(
             text(
-                f"""SELECT * FROM 'users' WHERE chat_id = '{chat_id}';"""
+                f"""SELECT * FROM users WHERE chat_id = {chat_id};"""
             )
         )
 

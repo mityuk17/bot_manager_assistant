@@ -34,24 +34,21 @@ router = Router()
 
 
 @router.message(Command('admin'))
-async def hello_world(message: Message):
+async def admin_menu(message: Message):
     user_id = message.from_user.id
-    chat_id = message.chat.id
-    if chat_id == config.BOT_CHAT_ID:
-        if user_id in config.ADMINS:
-            await message.answer(
-                text=admins_text.welcome_message,
-                reply_markup=keyboards.admin_menu
-            )
-        else:
-            await message.answer(f'У вас нет доступа')
+    if user_id in config.ADMINS:
+        await message.answer(
+            text=admins_text.welcome_message,
+            reply_markup=keyboards.admin_menu
+        )
+    else:
+        await message.answer(f'У вас нет доступа к данному функционалу!')
 
 
 @router.callback_query(F.data == 'chat_interactions')
 async def chat_interactions(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_reply_markup()
-    await callback.message.answer(
+    await callback.message.edit_text(
         text=admins_text.chat_functools,
         reply_markup=keyboards.chat_functools_keyboard
     )
@@ -60,9 +57,9 @@ async def chat_interactions(callback: CallbackQuery):
 @router.callback_query(F.data == 'add_new_chat')
 async def add_new_chat(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.edit_reply_markup()
-    await callback.message.answer(
+    await callback.message.edit_text(
         text=admins_text.add_new_chat,
+        reply_markup=None
     )
     await state.set_state(AddNewChat.add_new_chat)
 
@@ -77,7 +74,6 @@ async def add_new_chat(message: Message, state: FSMContext):
         await message.answer(
             text=admins_text.chat_not_found,
         )
-        await state.clear()
     else:
 
         chat_ = Chat(
@@ -92,46 +88,46 @@ async def add_new_chat(message: Message, state: FSMContext):
             reply_markup=keyboards.send_info_about_keyboard(added_chat.chat_id).as_markup()
         )
 
-        await message.answer(
-            text=admins_text.chat_added,
+        await bot.send_message(
+            chat_id=added_chat.chat_id,
+            text=admins_text.example,
         )
 
-        await state.clear()
+        await message.answer(text=admins_text.chat_added)
+
+    await state.clear()
 
 
 @router.callback_query(F.data == 'check_chat')
 async def check_chat(callback: CallbackQuery):
     await callback.answer()
     all_chats = await crud_chats.get_all_chats()
-    await callback.message.answer(
-        text='Выберите чат',
+    await callback.message.edit_text(
+        text='Выберите подключенный чат:',
         reply_markup=keyboards.select_chat(all_chats)
     )
-
-    await callback.message.edit_reply_markup()
 
 
 @router.callback_query(F.data.startswith('chatID_'))
 async def check_chat(callback: CallbackQuery):
-    chat_id = callback.data.split("_")[-1]
     await callback.answer()
+    chat_id = int(callback.data.split("_")[-1])
     all_users = await crud_users.get_all_users()
     users = list()
     for user in all_users:
         chat_user_id = user.chat_id
         if chat_id == chat_user_id:
-            users.append(user.fullname)
-    await callback.message.answer(
-        text='\n'.join(users) if users else 'Пользователей с этого чата не существует',
+            users.append(f"• {user.fullname}")
+    await callback.message.edit_text(
+        text='\n'.join(users) if users else 'В данном чате отсутствуют пользователи, заполнившие анкету',
+        reply_markup=None
     )
-    await callback.message.edit_reply_markup()
 
 
 @router.callback_query(F.data == 'sending_newsletters')
 async def sending_newsletters(call: CallbackQuery, state: FSMContext):
     await call.answer()
-    await call.message.edit_reply_markup()
-    await call.message.answer(
+    await call.message.edit_text(
         text=admins_text.sent_newsletters,
         reply_markup=keyboards.admin_cancel.as_markup()
     )
@@ -154,7 +150,7 @@ async def sending_newsletters(message: Message, state: FSMContext):
     newsletter = message.message_id
     await state.update_data(sending_newsletter=newsletter)
     await message.answer(
-        text='Напишите время расслыки формата hh:mm'
+        text='Введите время по МСК, в которое будет проводиться рассылка в формате hh:mm'
     )
     await state.set_state(SendingNewsletters.time_sent)
 
@@ -165,62 +161,60 @@ async def sending_newsletters(message: Message, state: FSMContext):
     if utils.check_time_format(time):
         await state.update_data(time_sent=time)
         await message.answer(
-            text='в какие дни делаем рассылку?',
-            reply_markup=keyboards.week_days_function('default')
+            text='В какие дни должна проводиться рассылка?',
+            reply_markup=keyboards.chat_week_days_function('default')
         )
-
         await state.set_state(SendingNewsletters.weekdays)
     else:
         await message.answer(
-            text='Введите время в формате hh:mm',
+            text='Введите время по МСК, в которое будет проводиться рассылка в формате hh:mm',
         )
 
 
-@router.callback_query(F.data.startswith('week_day_'), SendingNewsletters.weekdays)
-async def week_days(call: CallbackQuery, state: FSMContext):
+@router.callback_query(F.data.startswith('chat_week_day_'), SendingNewsletters.weekdays)
+async def chat_week_days(call: CallbackQuery, state: FSMContext):
     day = str(call.data.split('_')[-1])
     data = await state.get_data()
-    days = data.get('weekdays')
+    days = data.get('chat_weekdays')
     if days is None:
         days = ''
     days += day
 
     await call.message.edit_reply_markup(
-        reply_markup=keyboards.week_days_function(days)
+        reply_markup=keyboards.chat_week_days_function(days)
     )
 
-    await state.update_data(weekdays=days)
+    await state.update_data(chat_weekdays=days)
 
 
-@router.callback_query(F.data == 'check_week_days')
+@router.callback_query(F.data == 'check_chat_week_days')
 async def check_week_days(call: CallbackQuery, state: FSMContext):
     await call.answer()
     data = await state.get_data()
-    weekdays = data.get('weekdays')
+    weekdays = data.get('chat_weekdays')
     if weekdays is None:
         await call.message.edit_text(
-            text='Ввведите дни работы заново'
+            text='Не были выбраны дни проведения рассылки, пожалуйста, выберите заново',
+            reply_markup=None
         )
 
         await call.message.answer(
-            text='типо заглушка с теми же самыми кнопками. пользователь не выбрал дни работы',
-            reply_markup=keyboards.week_days_function('default')
+            text='Выберите дни проведения рассылки:',
+            reply_markup=keyboards.chat_week_days_function('default')
         )
-
-        await call.message.edit_reply_markup()
 
     else:
         week_days_ = utils.week_days_to_bin(weekdays)
         await call.message.edit_reply_markup()
         await call.message.edit_text(
-            text=utils.take_days_by_index(week_days_) + '\nВсе верно?',
+            text=utils.take_days_by_index(week_days_) + 'Всё верно?',
             reply_markup=keyboards.admin_yes_or_no.as_markup()
         )
 
         await state.update_data(weekdays=week_days_)
 
 
-@router.callback_query(F.data.startswith('week_'))
+@router.callback_query(F.data == 'week_yes' or F.data == "week_no")
 async def check_week_days(call: CallbackQuery, state: FSMContext):
     selection = str(call.data.split('_')[-1])
     await call.answer()
@@ -234,13 +228,14 @@ async def check_week_days(call: CallbackQuery, state: FSMContext):
             week_days=data.get('weekdays'),
         )
         await crud_newsletters.create_newsletter(newsletter)
-        await call.message.answer(
-            text='Рассылка успешно отправлена'
+        await call.message.edit_text(
+            text='Рассылка успешно создана',
+            reply_markup=None
         )
 
     else:
-        await call.message.answer(
-            text='Отмена действий.'
+        await call.message.edit_text(
+            text='Создание рассылки отменено',
+            reply_markup=None
         )
     await state.clear()
-    await call.message.edit_reply_markup()

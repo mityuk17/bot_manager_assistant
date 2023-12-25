@@ -3,7 +3,7 @@ from models.added_chats import AddedChats
 from models.chats import Chat
 import crud.chats as crud_chats
 import crud.posts as crud_posts
-from bot import bot
+from bot.bot import bot
 import crud.users as crud_users
 import crud.newsletters as crud_newsletters
 
@@ -19,13 +19,13 @@ def week_days_to_bin(s: str) -> str:
 
 
 def take_days_by_index(s: str) -> str:
-    days = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
+    days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
     user_full_info = ''
-    working_days = 'Вы работаете по такому графику:\n'
+    working_days = 'Выбранные дни:\n'
     for i in range(7):
         if s[i] == '1':
-            working_days += f'{days[i]}, '
-    user_full_info += working_days[:-2] + '\n'
+            working_days += f'• {days[i]}\n'
+    user_full_info += working_days + '\n'
     return user_full_info
 
 
@@ -84,10 +84,10 @@ async def reminder():
         for user in users:
             time_start = user.time_start
             time_end = user.time_end
-            if not crud_posts.check_send_information(user.user_id, user.chat_id, 'morning') and time_start < now:
-                morning.append(str(user.user_id))
-            if not crud_posts.check_send_information(user.user_id, user.chat_id, 'evening') and time_end < now:
-                evening.append(str(user.user_id))
+            if not (await crud_posts.check_send_information(user.user_id, user.chat_id, 'morning')) and time_start < now < time_end:
+                morning.append(str(user.fullname))
+            if not (await crud_posts.check_send_information(user.user_id, user.chat_id, 'evening')) and time_end < now:
+                evening.append(str(user.fullname))
         if morning:
             s1 = f'''В данном чате еще не отправили рассылку до начала работы {len(morning)} пользователей:\n{' '.join(morning)}'''
             await bot.send_message(chat_id=chat_id, text=s1)
@@ -100,7 +100,7 @@ async def reminder():
 
 # вторая функция на 10 минут перед началом и перед концом (чекает каждые 10 минут)
 async def remind_every_ten_minutes():
-    time_now = datetime.now()
+    time_now = datetime.now().time()
     users = await crud_users.get_all_users()
     today_day = int(datetime.today().weekday())
     for user in users:
@@ -108,12 +108,14 @@ async def remind_every_ten_minutes():
         time_end = user.time_end
         chat_id = user.chat_id
         week_days = user.week_days
-        if time_start - timedelta(minutes=10) <= time_now <= time_start and week_days[today_day - 1] == '1':
+        if not (await crud_posts.check_send_information(user.user_id, user.chat_id, 'morning')) and (add_minutes(time_start, -10) <= time_now <= time_start) and (week_days[today_day - 1] == '1'):
             await bot.send_message(chat_id=chat_id,
-                                   text=f'{user.fullname}, через 10 минут у вас начинается рабочий день')
-        if time_end - timedelta(minutes=10) <= time_now <= time_end and week_days[today_day - 1] == '1':
+                                   text=f'''{user.fullname}, скоро у вас начинается рабочий день
+Не забудьте отправить план на день''')
+        if not (await crud_posts.check_send_information(user.user_id, user.chat_id, 'morning')) and (add_minutes(time_end, -10) <= time_now <= time_end) and (week_days[today_day - 1] == '1'):
             await bot.send_message(chat_id=chat_id,
-                                   text=f'{user.fullname}, через 10 минут у вас заканчивается рабочий день')
+                                   text=f'''{user.fullname}, скоро у вас заканчивается рабочий день
+Не забудьте отправить отчёт за день''')
 
 
 async def send_newsletters():
@@ -122,10 +124,22 @@ async def send_newsletters():
     all_newsletters = await crud_newsletters.get_all_newsletters()
     for newsletter in all_newsletters:
         newsletter_time = newsletter.time
-        week_days = newsletter.week_days
-        if week_days[today_day - 1] == '1' and newsletter_time - timedelta(minutes=5) <= time_now <= newsletter_time:
-            await bot.copy_message(
-                chat_id=newsletter.chat_id,
-                message_id=newsletter.message_id,
-            )
 
+        week_days = newsletter.week_days
+        if week_days[today_day] == '1' and add_minutes(newsletter_time, -5) <= time_now <= newsletter_time:
+            for chat in (await crud_chats.get_all_chats()):
+                try:
+                    await bot.copy_message(
+                        chat_id=chat.chat_id,
+                        from_chat_id=newsletter.user_id,
+                        message_id=newsletter.message_id,
+                    )
+                except Exception as e:
+                    pass
+
+
+
+def add_minutes(tm, minutes1):
+    fulldate = datetime(100, 1, 1, tm.hour, tm.minute, tm.second)
+    fulldate = fulldate + timedelta(minutes=minutes1)
+    return fulldate.time()

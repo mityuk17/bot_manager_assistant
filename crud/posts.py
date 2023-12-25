@@ -62,7 +62,7 @@ async def get_all_posts():
         return [Posts.model_validate(posts, from_attributes=True) for posts in result]
 
 
-async def check_send_information(user_id: int, chat_id: str, time_type: str):
+async def check_send_information(user_id: int, chat_id: int, time_type: str):
     async with AsyncSession(engine) as session:
         today = datetime.today().date()
         today = datetime(today.year, today.month, today.day, )
