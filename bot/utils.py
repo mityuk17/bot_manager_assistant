@@ -158,5 +158,5 @@ async def get_user_statistic(user: User):
     for i in range(3):
         morning = await crud_posts.check_send_information_for_day(user.user_id, user.chat_id, 'morning', days[i], days[i+1])
         evening = await crud_posts.check_send_information_for_day(user.user_id, user.chat_id, 'evening', days[i], days[i+1])
-        text += f"{days[i].date().ctime()} План: {'✅' if morning else '❌'} Отчёт: {'✅' if evening else '❌'}\n"
+        text += f"{days[i].date().strftime('%d.%m.%Y')} План: {'✅' if morning else '❌'} Отчёт: {'✅' if evening else '❌'}\n"
     return text
