@@ -23,7 +23,7 @@ async def get_chat_by_title(chat_title: str):
             text(f"""SELECT * FROM added_chats WHERE title='{chat_title}';""")
         )
         result = query.all()
-        return AddedChats.model_validate(result[0], from_attributes=True) if result else None
+        return AddedChats.model_validate(result[-1], from_attributes=True) if result else None
 
 
 async def get_all_chats():

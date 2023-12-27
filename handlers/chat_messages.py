@@ -15,7 +15,8 @@ from datetime import datetime
 router = Router()
 @router.my_chat_member()
 async def my_chat_member(message: Message):
-    chat_id = str(message.chat.id)
+    print(message)
+    chat_id = message.chat.id
     chat_ = AddedChats(chat_id=chat_id, title=message.chat.title.strip().lower())
     await crud_added_chats.add_new_chat(chat_)
 
