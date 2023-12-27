@@ -45,6 +45,20 @@ async def admin_menu(message: Message):
         await message.answer(f'У вас нет доступа к данному функционалу!')
 
 
+@router.callback_query(F.data == 'admin_cancel_to_menu')
+async def admin_cancel_to_menu(callback: CallbackQuery):
+    await callback.answer()
+    user_id = callback.message.from_user.id
+    if user_id in config.ADMINS:
+        await callback.message.answer(
+            text=admins_text.welcome_message,
+            reply_markup=keyboards.admin_menu
+        )
+    else:
+        await callback.message.answer(f'У вас нет доступа к данному функционалу!')
+    await callback.message.edit_reply_markup()
+
+
 @router.callback_query(F.data == 'chat_interactions')
 async def chat_interactions(callback: CallbackQuery):
     await callback.answer()
@@ -59,7 +73,7 @@ async def add_new_chat(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.edit_text(
         text=admins_text.add_new_chat,
-        reply_markup=None
+        reply_markup=keyboards.back_to_chat_interactions.as_markup()
     )
     await state.set_state(AddNewChat.add_new_chat)
 
@@ -125,7 +139,7 @@ async def check_chat(callback: CallbackQuery):
 
 
 @router.callback_query(F.data == 'newsletter_information')
-async def sending_newsletters(callback: CallbackQuery):
+async def newsletter_information(callback: CallbackQuery):
     await callback.answer()
     await callback.message.answer(
         text=admins_text.newsletters_information,
@@ -194,7 +208,6 @@ async def admin_delete_newsletter(callback: CallbackQuery):
         from_chat_id=newsletter_.user_id,
         message_id=newsletter_.message_id
     )
-
 
 
 @router.callback_query(F.data == 'admin_cancel', SendingNewsletters.sending_newsletter)

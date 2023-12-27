@@ -91,7 +91,11 @@ def chat_week_days_function(s: str):
 
 
 def select_chat(chats: list[Chat]):
-    keyboard = []
+    keyboard = [
+        [
+            InlineKeyboardButton(text='Назад', callback_data='chat_interactions'),
+        ]
+    ]
     for chat in chats:
         button = InlineKeyboardButton(text=chat.title, callback_data=f'chatID_{chat.chat_id}')
         keyboard.append([button])
@@ -112,13 +116,17 @@ admin_selection = [
 ]
 admin_menu = InlineKeyboardMarkup(inline_keyboard=admin_selection)
 admin_cancel = InlineKeyboardBuilder()
-admin_cancel.add(InlineKeyboardButton(text='Назад', callback_data='admin_cancel'))
+admin_cancel.add(InlineKeyboardButton(text='Назад', callback_data='newsletter_information'))
 admin_newsletter = InlineKeyboardBuilder()
+admin_newsletter.add(InlineKeyboardButton(text='Назад', callback_data='admin_cancel_to_menu'))
 admin_newsletter.add(InlineKeyboardButton(text='Добавить', callback_data='sending_newsletters'))
 admin_newsletter.add(InlineKeyboardButton(text='Удалить', callback_data='admin_delete_newsletter'))
 admin_newsletter.add(InlineKeyboardButton(text='Посмотреть', callback_data='admin_watch_newsletter'))
 
 chat_functools = [
+    [
+        InlineKeyboardButton(text='Назад', callback_data='admin_cancel_to_menu'),
+    ],
     [
         InlineKeyboardButton(text='Добавить чат', callback_data='add_new_chat'),
     ],
@@ -126,6 +134,10 @@ chat_functools = [
         InlineKeyboardButton(text='Подключенные чаты', callback_data='check_chat')
     ]
 ]
+
+back_to_chat_interactions = InlineKeyboardBuilder()
+back_to_chat_interactions.add(InlineKeyboardButton(text='Назад', callback_data='chat_interactions'))
+
 chat_functools_keyboard = InlineKeyboardMarkup(inline_keyboard=chat_functools)
 
 admin_yes_or_no = InlineKeyboardBuilder()
@@ -134,7 +146,11 @@ admin_yes_or_no.add(InlineKeyboardButton(text='Нет', callback_data='week_no')
 
 
 async def all_newsletters_delete():
-    keyboard = []
+    keyboard = [
+        [
+            InlineKeyboardButton(text='Назад', callback_data='newsletter_information'),
+        ]
+    ]
     newsletters = await crud_newsletters.get_all_newsletters()
     for newsletter in newsletters:
         newsletter_id = newsletter.id
@@ -147,7 +163,11 @@ async def all_newsletters_delete():
 
 
 async def all_newsletters_check():
-    keyboard = []
+    keyboard = [
+        [
+            InlineKeyboardButton(text='Назад', callback_data='newsletter_information'),
+        ]
+    ]
     newsletters = await crud_newsletters.get_all_newsletters()
     for newsletter in newsletters:
         newsletter_id = newsletter.id
