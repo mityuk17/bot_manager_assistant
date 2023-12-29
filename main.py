@@ -24,7 +24,7 @@ async def main():
 
     # 3 таска(10мин, рассылка, кто не отправил)
     shed = AsyncIOScheduler()
-    shed.add_job(utils.reminder, 'interval', minutes=10)
+    shed.add_job(utils.reminder, 'interval', minutes=60)
     shed.add_job(utils.remind_every_ten_minutes, 'interval', minutes=10)
     shed.add_job(utils.send_newsletters, 'interval', minutes=5)
     shed.start()

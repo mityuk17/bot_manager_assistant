@@ -124,7 +124,10 @@ async def change_days(call: CallbackQuery, state: FSMContext):
     days = data.get('week_days')
     if days is None:
         days = ''
-    days += day
+    if day in days:
+        days = days.replace(day, '')
+    else:
+        days += day
 
     await call.message.edit_reply_markup(
         reply_markup=keyboards.week_days_function(days)

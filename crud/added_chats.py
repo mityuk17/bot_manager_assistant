@@ -7,13 +7,18 @@ from db.db import engine
 
 async def add_new_chat(chat: AddedChats):
     async with AsyncSession(engine) as session:
-        if chat in await get_all_chats():
-            return None
-        chat_db = AddedChatsDB(
-            chat_id=chat.chat_id,
-            title=chat.title
-        )
-        session.add(chat_db)
+        if chat.title in [chat_.title for chat_ in (await get_all_chats())]:
+            old_chat_id = (await get_chat_by_title(chat.title)).chat_id
+            if chat.chat_id != old_chat_id:
+                await session.execute(text(f"""UPDATE added_chats SET chat_id = {chat.chat_id} WHERE title = '{chat.title}';"""))
+                await session.execute(text(f"""UPDATE chats SET chat_id = {chat.chat_id} WHERE title = '{chat.title}';"""))
+                await session.execute(text(f"""UPDATE users SET chat_id = {chat.chat_id} WHERE chat_id = {old_chat_id};"""))
+        else:
+            chat_db = AddedChatsDB(
+                chat_id=chat.chat_id,
+                title=chat.title
+            )
+            session.add(chat_db)
         await session.commit()
 
 

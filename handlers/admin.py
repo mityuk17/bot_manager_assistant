@@ -48,7 +48,7 @@ async def admin_menu(message: Message):
 @router.callback_query(F.data == 'admin_cancel_to_menu')
 async def admin_cancel_to_menu(callback: CallbackQuery):
     await callback.answer()
-    user_id = callback.message.from_user.id
+    user_id = callback.from_user.id
     if user_id in config.ADMINS:
         await callback.message.answer(
             text=admins_text.welcome_message,
@@ -60,7 +60,8 @@ async def admin_cancel_to_menu(callback: CallbackQuery):
 
 
 @router.callback_query(F.data == 'chat_interactions')
-async def chat_interactions(callback: CallbackQuery):
+async def chat_interactions(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
     await callback.answer()
     await callback.message.edit_text(
         text=admins_text.chat_functools,
@@ -134,7 +135,7 @@ async def check_chat(callback: CallbackQuery):
             users.append(await utils.get_user_statistic(user))
     await callback.message.edit_text(
         text='\n'.join(users) if users else 'В данном чате отсутствуют пользователи, заполнившие анкету',
-        reply_markup=None
+        reply_markup=keyboards.back_to_chat_interactions.as_markup()
     )
 
 
