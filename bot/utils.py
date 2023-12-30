@@ -108,11 +108,11 @@ async def remind_every_ten_minutes():
         time_end = user.time_end
         chat_id = user.chat_id
         week_days = user.week_days
-        if not (await crud_posts.check_send_information(user.user_id, user.chat_id, 'morning')) and (add_minutes(time_start, -10) <= time_now <= time_start) and (week_days[today_day - 1] == '1'):
+        if not (await crud_posts.check_send_information(user.user_id, user.chat_id, 'morning')) and (add_minutes(time_start, -10) <= time_now <= time_start) and (week_days[today_day] == '1'):
             await bot.send_message(chat_id=chat_id,
                                    text=f'''{user.fullname}, скоро у вас начинается рабочий день
 Не забудьте отправить план на день''')
-        if not (await crud_posts.check_send_information(user.user_id, user.chat_id, 'morning')) and (add_minutes(time_end, -10) <= time_now <= time_end) and (week_days[today_day - 1] == '1'):
+        if not (await crud_posts.check_send_information(user.user_id, user.chat_id, 'morning')) and (add_minutes(time_end, -10) <= time_now <= time_end) and (week_days[today_day] == '1'):
             await bot.send_message(chat_id=chat_id,
                                    text=f'''{user.fullname}, скоро у вас заканчивается рабочий день
 Не забудьте отправить отчёт за день''')
